@@ -77,12 +77,12 @@ func (g *Getter) GetUserPoolByID(id string) (*types.UserPoolType, error) {
 }
 
 func (g *Getter) GetUserPoolByName(name string) (*types.UserPoolType, error) {
-	userpools, err := g.GetAllUserPools()
+	userpools, err := g.cognitoClient.ListUserPools()
 	if err != nil {
 		return nil, err
 	}
 
-	found := []*types.UserPoolType{}
+	found := []types.UserPoolDescriptionType{}
 
 	for _, up := range userpools {
 		if strings.EqualFold(name, awssdk.ToString(up.Name)) {
@@ -98,5 +98,10 @@ func (g *Getter) GetUserPoolByName(name string) (*types.UserPoolType, error) {
 		return nil, fmt.Errorf("multiple cognito user pools found with name: %s", name)
 	}
 
-	return found[0], nil
+	up, err := g.cognitoClient.DescribeUserPool(awssdk.ToString(found[0].Id))
+	if err != nil {
+		return nil, err
+	}
+
+	return up, nil
 }

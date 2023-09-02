@@ -153,6 +153,27 @@ func (c *CognitoUserPoolClient) ListUserPoolClients(userPoolID string) ([]types.
 	return clients, nil
 }
 
+// Lists users and their basic details in a user pool.
+func (c *CognitoUserPoolClient) ListUsers(userPoolID string) ([]types.UserType, error) {
+	users := []types.UserType{}
+	pageNum := 0
+
+	paginator := cognitoidp.NewListUsersPaginator(c.Client, &cognitoidp.ListUsersInput{
+		UserPoolId: aws.String(userPoolID),
+	})
+
+	for paginator.HasMorePages() && pageNum < maxPages {
+		out, err := paginator.NextPage(context.Background())
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, out.Users...)
+		pageNum++
+	}
+
+	return users, nil
+}
+
 // Lists the user pools associated with an AWS account.
 func (c *CognitoUserPoolClient) ListUserPools() ([]types.UserPoolDescriptionType, error) {
 	pools := []types.UserPoolDescriptionType{}
